@@ -1,6 +1,5 @@
 import { Bell } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
-import { Badge } from '../ui/Badge'
 import { formatLongDate } from '../../utils/formatters'
 
 const titles: Record<string, { title: string; subtitle: string }> = {
