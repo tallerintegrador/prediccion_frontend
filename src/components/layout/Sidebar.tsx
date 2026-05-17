@@ -31,7 +31,6 @@ export function Sidebar() {
         </div>
         <div>
           <p className="text-sm font-bold text-slate-950">Sistema Predictivo de Costos</p>
-          <p className="text-xs text-slate-500">Hortifrut Peru · Comercio Exterior</p>
         </div>
       </div>
 

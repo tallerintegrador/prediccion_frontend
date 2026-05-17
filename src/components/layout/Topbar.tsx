@@ -40,7 +40,6 @@ export function Topbar() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-slate-950">{current.title}</h1>
-            <Badge tone="amber">DEMO · MOCKUP TESIS</Badge>
           </div>
           <p className="mt-1 text-sm text-slate-500">{current.subtitle}</p>
         </div>
