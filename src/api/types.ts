@@ -94,11 +94,38 @@ export type CostBreakdown = {
   otros: number
 }
 
-export type PredictionResponse = {
-  id: number
-  costo_predicho_usd: number
-  desglose: CostBreakdown
+export type PredictionModelInfo = {
+  id: string
+  nombre: string
+  archivo: string
+  tipo: string
+  activo: boolean
+  principal: boolean
+  cargado: boolean
+  error: string | null
+  metricas: Record<string, unknown> | null
+}
+
+export type PredictionModelResult = {
+  modelo_id: string
+  modelo_nombre: string
+  principal: boolean
+  costo_predicho_usd: number | null
+  desglose: CostBreakdown | null
   moneda: string
+  error: string | null
+}
+
+export type PredictionResponse = {
+  id: number | null
+  modelo_principal: {
+    id: string
+    nombre: string
+  } | null
+  costo_predicho_usd: number | null
+  desglose: CostBreakdown | null
+  moneda: string
+  resultados_modelos: PredictionModelResult[]
 }
 
 export type PreliquidationDetail = {

@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { getHistoricalFilters } from '../api/historico'
-import { createPrediction } from '../api/prediccion'
-import type { HistoricalFilters, PredictionResponse } from '../api/types'
+import { createPrediction, getPredictionModels } from '../api/prediccion'
+import type { HistoricalFilters, PredictionModelInfo, PredictionModelResult, PredictionResponse } from '../api/types'
+import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { DataTable } from '../components/ui/DataTable'
@@ -21,6 +22,7 @@ const emptyFilters: HistoricalFilters = {
 export function Prediccion() {
   const { payload, updateField, validate } = usePredictionForm()
   const [filters, setFilters] = useState<HistoricalFilters>(emptyFilters)
+  const [models, setModels] = useState<PredictionModelInfo[]>([])
   const [result, setResult] = useState<PredictionResponse | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,6 +37,12 @@ export function Prediccion() {
       })
       .catch(() => setFilters(emptyFilters))
   }, [updateField])
+
+  useEffect(() => {
+    getPredictionModels()
+      .then(setModels)
+      .catch(() => setModels([]))
+  }, [])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -56,13 +64,21 @@ export function Prediccion() {
     }
   }
 
-  const breakdown = result
+  const breakdown = result?.desglose
     ? Object.entries(result.desglose).map(([key, value]) => ({
         componente: humanizeKey(key),
         monto: value,
         porcentaje: result.costo_predicho_usd ? (value / result.costo_predicho_usd) * 100 : 0,
       }))
     : []
+
+  const modelRows: Array<PredictionModelResult | PredictionModelInfo> = result?.resultados_modelos.length
+    ? result.resultados_modelos
+    : models
+
+  function isPredictionResult(row: PredictionModelResult | PredictionModelInfo): row is PredictionModelResult {
+    return 'modelo_id' in row
+  }
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.35fr]">
@@ -134,18 +150,24 @@ export function Prediccion() {
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-indigo-200">Prediccion del motor</p>
               <p className="mt-2 text-4xl font-bold">{formatUsd(result?.costo_predicho_usd)}</p>
-              <p className="mt-2 text-sm text-indigo-100">Resultado devuelto por FastAPI</p>
+              <p className="mt-2 text-sm text-indigo-100">
+                {result?.modelo_principal ? `Modelo principal: ${result.modelo_principal.nombre}` : 'Sin modelo principal disponible'}
+              </p>
             </div>
             <div className="text-right">
-              <p className="text-xs font-bold uppercase tracking-wide text-indigo-200">Confianza</p>
-              <p className="mt-2 text-xl font-bold">No disponible</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-indigo-200">Modelos evaluados</p>
+              <p className="mt-2 text-xl font-bold">{result?.resultados_modelos.length ?? models.filter((model) => model.activo).length}</p>
             </div>
           </div>
           <div className="mt-6 rounded-md bg-white/10 p-4">
-            <p className="text-sm font-semibold">Rango historico de despachos similares</p>
-            <p className="mt-2 text-sm text-indigo-100">No disponible desde la API actual.</p>
+            <p className="text-sm font-semibold">Estado de registro</p>
+            <p className="mt-2 text-sm text-indigo-100">
+              {result?.id
+                ? 'La estimacion principal fue registrada para pre-liquidacion.'
+                : 'Ejecuta una prediccion con un modelo principal valido para registrar la estimacion.'}
+            </p>
           </div>
-          {result && (
+          {result?.id && (
             <Link
               className="mt-4 inline-flex rounded-md bg-white px-4 py-2 text-sm font-semibold text-indigo-700"
               to={`/preliquidacion?id=${result.id}`}
@@ -154,6 +176,49 @@ export function Prediccion() {
             </Link>
           )}
         </section>
+
+        <Card title="Comparacion de modelos">
+          <DataTable
+            data={modelRows}
+            emptyText="No hay modelos registrados."
+            columns={[
+              {
+                header: 'Modelo',
+                render: (item) => {
+                  const nombre = isPredictionResult(item) ? item.modelo_nombre : item.nombre
+                  const principal = item.principal
+                  return (
+                    <div className="space-y-1">
+                      <p className="font-semibold">{nombre}</p>
+                      {principal && <Badge tone="indigo">Principal</Badge>}
+                    </div>
+                  )
+                },
+              },
+              {
+                header: 'Estado',
+                render: (item) => {
+                  const error = item.error
+                  const loaded = isPredictionResult(item) ? !error && item.costo_predicho_usd !== null : item.cargado
+                  return <Badge tone={loaded ? 'emerald' : error ? 'rose' : 'amber'}>{loaded ? 'OK' : error ? 'Error' : 'Pendiente'}</Badge>
+                },
+              },
+              {
+                header: 'Prediccion',
+                className: 'text-right',
+                render: (item) => (isPredictionResult(item) ? formatUsd(item.costo_predicho_usd) : 'No ejecutado'),
+              },
+              {
+                header: 'Detalle',
+                render: (item) => (
+                  <span className="block max-w-[360px] whitespace-normal text-sm text-slate-600">
+                    {item.error ?? (isPredictionResult(item) ? 'Prediccion generada correctamente.' : item.archivo)}
+                  </span>
+                ),
+              },
+            ]}
+          />
+        </Card>
 
         <Card title="Desglose del costo predicho">
           {breakdown.length === 0 ? (
@@ -170,10 +235,6 @@ export function Prediccion() {
               ))}
             </div>
           )}
-        </Card>
-
-        <Card title="Despachos similares historicos">
-          <DataTable data={[]} columns={[{ header: 'Estado', render: () => 'No disponible' }]} />
         </Card>
       </div>
     </div>
