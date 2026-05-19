@@ -204,6 +204,10 @@ export function Prediccion() {
                 },
               },
               {
+                header: 'Uso',
+                render: (item) => (isPredictionResult(item) ? 'Costo' : humanizeKey(item.objetivo)),
+              },
+              {
                 header: 'Prediccion',
                 className: 'text-right',
                 render: (item) => (isPredictionResult(item) ? formatUsd(item.costo_predicho_usd) : 'No ejecutado'),
@@ -212,7 +216,7 @@ export function Prediccion() {
                 header: 'Detalle',
                 render: (item) => (
                   <span className="block max-w-[360px] whitespace-normal text-sm text-slate-600">
-                    {item.error ?? (isPredictionResult(item) ? 'Prediccion generada correctamente.' : item.archivo)}
+                    {item.error ?? (isPredictionResult(item) ? 'Prediccion generada correctamente.' : item.descripcion ?? item.archivo)}
                   </span>
                 ),
               },

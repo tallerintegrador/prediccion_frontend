@@ -101,6 +101,8 @@ export type PredictionModelInfo = {
   tipo: string
   activo: boolean
   principal: boolean
+  objetivo: string
+  descripcion: string | null
   cargado: boolean
   error: string | null
   metricas: Record<string, unknown> | null
