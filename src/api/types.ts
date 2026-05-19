@@ -93,6 +93,7 @@ export type PredictionPayload = {
   peso_kg: number
   fecha_eta?: string
   proyecto?: string
+  modelo_id?: string
 }
 
 export type CostBreakdown = {
@@ -113,6 +114,8 @@ export type PredictionModelInfo = {
   objetivo: string
   descripcion: string | null
   cargado: boolean
+  predecible: boolean
+  ranking: number | null
   error: string | null
   metricas: Record<string, unknown> | null
 }
@@ -121,6 +124,7 @@ export type PredictionModelResult = {
   modelo_id: string
   modelo_nombre: string
   principal: boolean
+  seleccionado: boolean
   costo_predicho_usd: number | null
   desglose: CostBreakdown | null
   moneda: string

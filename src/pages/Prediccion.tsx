@@ -24,9 +24,15 @@ export function Prediccion() {
 
   useEffect(() => {
     getPredictionModels()
-      .then(setModels)
+      .then((items) => {
+        setModels(items)
+        const defaultModel = items.find((model) => model.predecible && model.principal) ?? items.find((model) => model.predecible)
+        if (defaultModel) {
+          updateField('modelo_id', defaultModel.id)
+        }
+      })
       .catch(() => setModels([]))
-  }, [])
+  }, [updateField])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -56,12 +62,27 @@ export function Prediccion() {
       }))
     : []
 
+  const selectableModels = models.filter((model) => model.predecible)
+  const topModels = selectableModels
+    .filter((model) => model.ranking !== null)
+    .sort((first, second) => (first.ranking ?? 99) - (second.ranking ?? 99))
+    .slice(0, 3)
+
   const modelRows: Array<PredictionModelResult | PredictionModelInfo> = result?.resultados_modelos.length
     ? result.resultados_modelos
-    : models
+    : topModels
 
   function isPredictionResult(row: PredictionModelResult | PredictionModelInfo): row is PredictionModelResult {
     return 'modelo_id' in row
+  }
+
+  function modelId(row: PredictionModelResult | PredictionModelInfo) {
+    return isPredictionResult(row) ? row.modelo_id : row.id
+  }
+
+  function handleModelSelection(modelId: string) {
+    updateField('modelo_id', modelId || undefined)
+    setResult(null)
   }
 
   return (
@@ -156,6 +177,19 @@ export function Prediccion() {
               onChange={(event) => updateField('proyecto', event.target.value || undefined)}
             />
           </div>
+          <SelectField
+            label="Modelo para predecir"
+            value={payload.modelo_id ?? ''}
+            onChange={(event) => handleModelSelection(event.target.value)}
+            options={[
+              { label: 'Modelo principal automatico', value: '' },
+              ...selectableModels.map((model) => ({
+                label: `${model.ranking ? `Top ${model.ranking} - ` : ''}${model.nombre}`,
+                value: model.id,
+              })),
+            ]}
+            disabled={selectableModels.length === 0}
+          />
           {error && <p className="rounded-md bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{error}</p>}
           <Button className="w-full" disabled={submitting}>
             {submitting ? 'Prediciendo...' : 'Predecir costo'}
@@ -196,20 +230,24 @@ export function Prediccion() {
           )}
         </section>
 
-        <Card title="Comparacion de modelos">
+        <Card title="Comparacion de modelos - Top 3">
           <DataTable
             data={modelRows}
-            emptyText="No hay modelos registrados."
+            emptyText="No hay modelos de costo disponibles."
             columns={[
               {
                 header: 'Modelo',
                 render: (item) => {
                   const nombre = isPredictionResult(item) ? item.modelo_nombre : item.nombre
                   const principal = item.principal
+                  const seleccionado = isPredictionResult(item) ? item.seleccionado : item.id === payload.modelo_id
                   return (
                     <div className="space-y-1">
                       <p className="font-semibold">{nombre}</p>
-                      {principal && <Badge tone="indigo">Principal</Badge>}
+                      <div className="flex flex-wrap gap-1">
+                        {principal && <Badge tone="indigo">Principal</Badge>}
+                        {seleccionado && <Badge tone="emerald">Elegido</Badge>}
+                      </div>
                     </div>
                   )
                 },
@@ -238,6 +276,24 @@ export function Prediccion() {
                     {item.error ?? (isPredictionResult(item) ? 'Prediccion generada correctamente.' : item.descripcion ?? item.archivo)}
                   </span>
                 ),
+              },
+              {
+                header: 'Accion',
+                render: (item) => {
+                  const id = modelId(item)
+                  const selected = id === payload.modelo_id
+                  return (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="min-h-8 px-3 text-xs"
+                      disabled={selected}
+                      onClick={() => handleModelSelection(id)}
+                    >
+                      {selected ? 'Elegido' : 'Usar'}
+                    </Button>
+                  )
+                },
               },
             ]}
           />
