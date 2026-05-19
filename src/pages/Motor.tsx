@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getMotorSummary } from '../api/motor'
 import { HorizontalBarChart } from '../components/charts/HorizontalBarChart'
 import { TrendLineChart } from '../components/charts/TrendLineChart'
@@ -47,15 +49,23 @@ function sourceLabel(value?: string) {
 
 export function Motor() {
   const { data, loading, error } = useFetchData(getMotorSummary)
+  const [modelsPage, setModelsPage] = useState(1)
 
   if (loading) return <StateBlock title="Cargando metricas del motor" />
   if (error) return <StateBlock title="No se pudo cargar el motor" description={error} />
   if (!data) return <StateBlock title="Sin metricas disponibles" />
 
   const categoryData = normalizeNamedValueRows(data.precision_por_categoria, 'categoria', 'mape')
+    .sort((left, right) => right.value - left.value)
+    .slice(0, 10)
   const evolutionData = normalizeNamedValueRows(data.evolucion_precision, 'semana', 'precision')
   const comparison = normalizeComparisonRows(data.comparacion_baseline)
   const modelSummary = data.modelos_resumen ?? { total: 0, activos: 0, cargados: 0 }
+  const models = data.modelos ?? []
+  const modelsPageSize = 10
+  const totalModelPages = Math.max(1, Math.ceil(models.length / modelsPageSize))
+  const currentModelsPage = Math.min(modelsPage, totalModelPages)
+  const visibleModels = models.slice((currentModelsPage - 1) * modelsPageSize, currentModelsPage * modelsPageSize)
   const hasCostMetrics = [data.metricas.mae, data.metricas.mape, data.metricas.rmse, data.metricas.r2].some(
     (value) => value !== null && value !== undefined,
   )
@@ -109,7 +119,7 @@ export function Motor() {
 
       <Card title="Modelos registrados">
         <DataTable
-          data={data.modelos ?? []}
+          data={visibleModels}
           emptyText="No hay modelos cargados por la API."
           columns={[
             {
@@ -131,6 +141,33 @@ export function Motor() {
             },
           ]}
         />
+        {models.length > modelsPageSize && (
+          <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm text-slate-600">
+            <span>
+              Pagina {currentModelsPage} de {totalModelPages}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                onClick={() => setModelsPage((page) => Math.max(1, page - 1))}
+                disabled={currentModelsPage === 1}
+                aria-label="Pagina anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                onClick={() => setModelsPage((page) => Math.min(totalModelPages, page + 1))}
+                disabled={currentModelsPage === totalModelPages}
+                aria-label="Pagina siguiente"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   )
