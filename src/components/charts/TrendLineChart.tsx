@@ -7,8 +7,8 @@ type ChartPoint = {
 
 export function TrendLineChart({ data }: { data: ChartPoint[] }) {
   return (
-    <div className="h-72">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="h-72 min-w-0">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={288}>
         <LineChart data={data} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
           <CartesianGrid stroke="#e2e8f0" vertical={false} />
           <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />

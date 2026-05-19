@@ -15,8 +15,8 @@ type ChartPoint = {
 
 export function AreaLineChart({ data }: { data: ChartPoint[] }) {
   return (
-    <div className="h-72">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="h-72 min-w-0">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={288}>
         <AreaChart data={data} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
           <defs>
             <linearGradient id="areaIndigo" x1="0" y1="0" x2="0" y2="1">
