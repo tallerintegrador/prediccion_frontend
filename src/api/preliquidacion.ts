@@ -1,9 +1,14 @@
 import { apiClient, fileUrl } from './client'
-import type { PreliquidationDetail } from './types'
+import type { PreliquidationDetail, PreliquidationSummary } from './types'
 
 export async function getPreliquidation(id?: string | null) {
   const path = id ? `/preliquidacion/${id}` : '/preliquidacion/ultima'
   const response = await apiClient.get<PreliquidationDetail>(path)
+  return response.data
+}
+
+export async function getPreliquidationHistory() {
+  const response = await apiClient.get<PreliquidationSummary[]>('/preliquidacion/historial')
   return response.data
 }
 

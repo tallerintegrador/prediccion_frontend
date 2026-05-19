@@ -166,6 +166,20 @@ export type PreliquidationDetail = {
   }>
 }
 
+export type PreliquidationSummary = {
+  id: number
+  numero: string
+  estado: string
+  producto: string
+  proveedor: string
+  pais_origen: string
+  incoterm: string
+  fecha_estimada_arribo: string | null
+  fecha_emision: string
+  costo_predicho_usd: number
+  costo_predicho_pen: number
+}
+
 export type ReconciliationSummary = {
   kpis: {
     reconciliados_mes: number
