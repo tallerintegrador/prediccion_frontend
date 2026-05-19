@@ -1,8 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { getHistoricalFilters } from '../api/historico'
 import { createPrediction, getPredictionModels } from '../api/prediccion'
-import type { HistoricalFilters, PredictionModelInfo, PredictionModelResult, PredictionResponse } from '../api/types'
+import type { PredictionModelInfo, PredictionModelResult, PredictionResponse } from '../api/types'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
@@ -12,31 +11,16 @@ import { StateBlock } from '../components/ui/StateBlock'
 import { usePredictionForm } from '../hooks/usePredictionForm'
 import { formatUsd, humanizeKey } from '../utils/formatters'
 
-const emptyFilters: HistoricalFilters = {
-  categorias: [],
-  paises: [],
-  proveedores: [],
-  periodos: [],
-}
+const polOptions = ['VALENCIA', 'SANTIAGO', 'COLOMBO', 'SAN ANTONIO', 'MIAMI', 'OTRO']
+const modalityOptions = ['SEA / FCL', 'SEA / LCL', 'AIR / AIR', 'COURIER']
+const incotermFamilyOptions = ['GRUPO_C', 'GRUPO_E', 'GRUPO_F', 'GRUPO_D']
 
 export function Prediccion() {
   const { payload, updateField, validate } = usePredictionForm()
-  const [filters, setFilters] = useState<HistoricalFilters>(emptyFilters)
   const [models, setModels] = useState<PredictionModelInfo[]>([])
   const [result, setResult] = useState<PredictionResponse | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    getHistoricalFilters()
-      .then((data) => {
-        setFilters(data)
-        if (data.categorias[0]) updateField('categoria', data.categorias[0])
-        if (data.paises[0]) updateField('origen', data.paises[0])
-        if (data.proveedores[0]) updateField('proveedor', data.proveedores[0])
-      })
-      .catch(() => setFilters(emptyFilters))
-  }, [updateField])
 
   useEffect(() => {
     getPredictionModels()
@@ -84,57 +68,92 @@ export function Prediccion() {
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.35fr]">
       <Card title="Parametros del nuevo despacho" subtitle="Ingresa los datos conocidos antes del arribo de la mercancia">
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <SelectField
-            label="Categoria del producto"
-            value={payload.categoria}
-            onChange={(event) => updateField('categoria', event.target.value)}
-            options={filters.categorias.map((value) => ({ label: value, value }))}
+          <Input
+            label="ID despacho"
+            value={payload.id_despacho}
+            onChange={(event) => updateField('id_despacho', event.target.value)}
           />
-          <Input label="Producto" value={payload.producto} onChange={(event) => updateField('producto', event.target.value)} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <Input
+              label="Proveedor servicio"
+              value={payload.proveedor_servicio}
+              onChange={(event) => updateField('proveedor_servicio', event.target.value)}
+            />
+            <Input
+              label="Proveedor principal"
+              value={payload.proveedor_principal}
+              onChange={(event) => updateField('proveedor_principal', event.target.value)}
+            />
+          </div>
+          <Input
+            label="Agencia de aduana"
+            value={payload.agencia_aduana}
+            onChange={(event) => updateField('agencia_aduana', event.target.value)}
+          />
           <div className="grid gap-4 md:grid-cols-2">
             <SelectField
-              label="Pais de origen"
-              value={payload.origen}
-              onChange={(event) => updateField('origen', event.target.value)}
-              options={filters.paises.map((value) => ({ label: value, value }))}
+              label="POL"
+              value={payload.pol}
+              onChange={(event) => updateField('pol', event.target.value)}
+              options={polOptions.map((value) => ({ label: value, value }))}
             />
-            <SelectField
-              label="Proveedor"
-              value={payload.proveedor}
-              onChange={(event) => updateField('proveedor', event.target.value)}
-              options={filters.proveedores.map((value) => ({ label: value, value }))}
+            <Input
+              label="POD"
+              value={payload.pod}
+              onChange={(event) => updateField('pod', event.target.value)}
             />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <SelectField
-              label="Incoterm"
-              value={payload.incoterm}
-              onChange={(event) => updateField('incoterm', event.target.value)}
-              options={['CIF', 'FOB', 'DAP', 'EXW'].map((value) => ({ label: value, value }))}
+              label="Modalidad"
+              value={payload.modalidad}
+              onChange={(event) => updateField('modalidad', event.target.value)}
+              options={modalityOptions.map((value) => ({ label: value, value }))}
+            />
+            <SelectField
+              label="Incoterm familia"
+              value={payload.incoterm_familia}
+              onChange={(event) => updateField('incoterm_familia', event.target.value)}
+              options={incotermFamilyOptions.map((value) => ({ label: value, value }))}
+            />
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Input
+              label="Contenedores"
+              type="number"
+              min="0"
+              step="1"
+              value={payload.contenedores}
+              onChange={(event) => updateField('contenedores', Number(event.target.value))}
             />
             <Input
-              label="Cantidad"
+              label="Bultos"
+              type="number"
+              min="0"
+              step="1"
+              value={payload.bultos}
+              onChange={(event) => updateField('bultos', Number(event.target.value))}
+            />
+            <Input
+              label="Peso (kg)"
               type="number"
               min="0"
               step="0.01"
-              value={payload.cantidad}
-              onChange={(event) => updateField('cantidad', Number(event.target.value))}
+              value={payload.peso_kg}
+              onChange={(event) => updateField('peso_kg', Number(event.target.value))}
             />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <Input
-              label="Tipo de cambio (USD/PEN)"
-              type="number"
-              min="0"
-              step="0.01"
-              value={payload.tipo_cambio}
-              onChange={(event) => updateField('tipo_cambio', Number(event.target.value))}
-            />
-            <Input
-              label="Fecha estimada de arribo"
+              label="Fecha ETA"
               type="date"
-              value={payload.fecha_estimada_arribo}
-              onChange={(event) => updateField('fecha_estimada_arribo', event.target.value)}
+              value={payload.fecha_eta ?? ''}
+              onChange={(event) => updateField('fecha_eta', event.target.value || undefined)}
+            />
+            <Input
+              label="Proyecto"
+              value={payload.proyecto ?? ''}
+              onChange={(event) => updateField('proyecto', event.target.value || undefined)}
             />
           </div>
           {error && <p className="rounded-md bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{error}</p>}

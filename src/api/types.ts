@@ -76,14 +76,19 @@ export type HistoricalFilters = {
 }
 
 export type PredictionPayload = {
-  categoria: string
-  producto: string
-  origen: string
-  proveedor: string
-  incoterm: string
-  cantidad: number
-  tipo_cambio: number
-  fecha_estimada_arribo?: string
+  id_despacho: string
+  proveedor_servicio: string
+  proveedor_principal: string
+  agencia_aduana: string
+  pol: string
+  pod: string
+  modalidad: string
+  incoterm_familia: string
+  contenedores: number
+  bultos: number
+  peso_kg: number
+  fecha_eta?: string
+  proyecto?: string
 }
 
 export type CostBreakdown = {

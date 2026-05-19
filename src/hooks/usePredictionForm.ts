@@ -2,14 +2,19 @@ import { useCallback, useState } from 'react'
 import type { PredictionPayload } from '../api/types'
 
 const initialPayload: PredictionPayload = {
-  categoria: '',
-  producto: '',
-  origen: '',
-  proveedor: '',
-  incoterm: 'CIF',
-  cantidad: 1,
-  tipo_cambio: 3.78,
-  fecha_estimada_arribo: '',
+  id_despacho: 'DEMO-AIR-001',
+  proveedor_servicio: 'AIRSEALOG',
+  proveedor_principal: 'DUNAVANT',
+  agencia_aduana: 'AVM ADUANERA',
+  pol: 'SANTIAGO',
+  pod: 'CALLAO',
+  modalidad: 'AIR / AIR',
+  incoterm_familia: 'GRUPO_E',
+  contenedores: 0,
+  bultos: 12,
+  peso_kg: 480,
+  fecha_eta: '2026-10-03',
+  proyecto: 'PROJ-2026-007',
 }
 
 export function usePredictionForm() {
@@ -20,11 +25,20 @@ export function usePredictionForm() {
   }, [])
 
   const validate = useCallback(() => {
-    if (!payload.categoria || !payload.producto || !payload.origen || !payload.proveedor) {
-      return 'Completa categoria, producto, origen y proveedor.'
+    if (
+      !payload.id_despacho ||
+      !payload.proveedor_servicio ||
+      !payload.proveedor_principal ||
+      !payload.agencia_aduana ||
+      !payload.pol ||
+      !payload.pod ||
+      !payload.modalidad ||
+      !payload.incoterm_familia
+    ) {
+      return 'Completa los datos principales del despacho.'
     }
-    if (payload.cantidad <= 0 || payload.tipo_cambio <= 0) {
-      return 'Cantidad y tipo de cambio deben ser mayores a cero.'
+    if (payload.contenedores < 0 || payload.bultos < 0 || payload.peso_kg <= 0) {
+      return 'Contenedores y bultos no pueden ser negativos; el peso debe ser mayor a cero.'
     }
     return null
   }, [payload])
