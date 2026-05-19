@@ -2,11 +2,11 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
+import { ChartFrame } from './ChartFrame'
 
 type ChartPoint = {
   name: string
@@ -15,9 +15,9 @@ type ChartPoint = {
 
 export function AreaLineChart({ data }: { data: ChartPoint[] }) {
   return (
-    <div className="h-72 min-w-0">
-      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={288}>
-        <AreaChart data={data} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+    <ChartFrame>
+      {({ width, height }) => (
+        <AreaChart width={width} height={height} data={data} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
           <defs>
             <linearGradient id="areaIndigo" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.24} />
@@ -37,7 +37,7 @@ export function AreaLineChart({ data }: { data: ChartPoint[] }) {
             dot={{ r: 3, fill: '#4338ca' }}
           />
         </AreaChart>
-      </ResponsiveContainer>
-    </div>
+      )}
+    </ChartFrame>
   )
 }
