@@ -26,6 +26,11 @@ function badgeTone(category: string) {
   return 'slate'
 }
 
+function sourceLabel(value?: string) {
+  if (value === 'estimaciones') return 'Estimaciones'
+  return 'Historico'
+}
+
 export function Historico() {
   const [filters, setFilters] = useState<HistoricalFilters>(emptyFilters)
   const [selected, setSelected] = useState({ categoria: '', pais: '', proveedor: '', periodo: '' })
@@ -124,10 +129,11 @@ export function Historico() {
         </div>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Despachos encontrados" value={String(shipments?.total ?? 0)} />
         <MetricCard label="Costo promedio por despacho" value={formatUsd(average)} />
         <MetricCard label="Costo total acumulado" value={formatUsd(total)} />
+        <MetricCard label="Fuente" value={sourceLabel(shipments?.fuente)} />
       </div>
 
       <Card title="Evolucion del costo en el tiempo" subtitle="Costo total segun datos filtrados">

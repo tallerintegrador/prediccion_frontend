@@ -19,6 +19,9 @@ export type DashboardOverview = {
     costo_total_importado_anio_usd: number
     dias_bloqueo_sap: number | null
     precision_motor: number | null
+    modelos_activos?: number
+    modelos_cargados?: number
+    fuente_datos?: string
   }
   costo_mensual: MonthlyCost[]
   distribucion_categoria: CategoryDistribution[]
@@ -66,6 +69,7 @@ export type PaginatedShipments = {
   total: number
   page: number
   page_size: number
+  fuente?: string
 }
 
 export type HistoricalFilters = {
@@ -171,14 +175,28 @@ export type ReconciliationSummary = {
 
 export type MotorSummary = {
   disponible: boolean
+  fuente_metricas?: string
   metricas: {
     mae?: number | null
     mape?: number | null
     rmse?: number | null
     r2?: number | null
     precision?: number | null
+    accuracy?: number | null
+    f1_macro?: number | null
+    silhouette_kmeans?: number | null
+    silhouette_hdbscan?: number | null
+    psi_max?: number | null
+    psi_promedio?: number | null
   }
   precision_por_categoria: unknown[]
   evolucion_precision: unknown[]
   comparacion_baseline: unknown[]
+  modelos?: PredictionModelInfo[]
+  modelos_resumen?: {
+    total: number
+    activos: number
+    cargados: number
+  }
+  artefactos?: Record<string, unknown>
 }

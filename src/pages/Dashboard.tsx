@@ -24,17 +24,20 @@ export function Dashboard() {
     name: item.categoria,
     value: item.total,
   }))
+  const loadedModels = data.kpis.modelos_cargados ?? 0
+  const activeModels = data.kpis.modelos_activos ?? 0
+  const costHelper = data.kpis.fuente_datos === 'estimaciones' ? 'Basado en estimaciones registradas' : 'Basado en historico'
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Despachos del anio" value={String(data.kpis.despachos_anio)} />
-        <MetricCard label="Costo total importado" value={formatUsd(data.kpis.costo_total_importado_anio_usd)} />
-        <MetricCard label="Dias de bloqueo SAP" value={data.kpis.dias_bloqueo_sap?.toString() ?? 'No disponible'} />
+        <MetricCard label="Operaciones del anio" value={String(data.kpis.despachos_anio)} helper={costHelper} />
+        <MetricCard label="Costo gestionado" value={formatUsd(data.kpis.costo_total_importado_anio_usd)} helper={costHelper} />
+        <MetricCard label="Modelos cargados" value={String(loadedModels)} helper={`${activeModels} activos para prediccion`} />
         <MetricCard
           label="Precision del motor"
           value={data.kpis.precision_motor === null ? 'No disponible' : formatPercent(data.kpis.precision_motor)}
-          helper="Calculado desde metricas del modelo"
+          helper="Calculado desde metricas disponibles"
         />
       </div>
 

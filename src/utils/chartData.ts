@@ -18,7 +18,7 @@ export function normalizeNamedValueRows(rows: unknown[], preferredName: string, 
   return rows
     .filter((row): row is LooseRecord => typeof row === 'object' && row !== null)
     .map((row) => {
-      const name = row[preferredName] ?? row.categoria ?? row.metricica ?? row.metrica ?? row.name ?? row.semana
+      const name = row[preferredName] ?? row.categoria ?? row.componente ?? row.metricica ?? row.metrica ?? row.name ?? row.semana
       const value = row[preferredValue] ?? row.mape ?? row.precision ?? row.valor ?? row.value
       return {
         name: String(name ?? 'Sin etiqueta'),
