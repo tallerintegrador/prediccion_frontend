@@ -54,7 +54,7 @@ export function Topbar() {
               CM
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900">Camila Mendoza</p>
+              <p className="text-sm font-semibold text-slate-900">Camila Moreno</p>
               <p className="text-xs text-slate-500">Importaciones</p>
             </div>
           </div>
