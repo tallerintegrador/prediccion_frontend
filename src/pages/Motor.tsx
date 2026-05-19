@@ -7,12 +7,35 @@ import { MetricCard } from '../components/ui/MetricCard'
 import { StateBlock } from '../components/ui/StateBlock'
 import { useFetchData } from '../hooks/useFetchData'
 import { normalizeComparisonRows, normalizeNamedValueRows } from '../utils/chartData'
-import { formatPercent, formatUsd } from '../utils/formatters'
+import { formatPercent, formatUsd, humanizeKey } from '../utils/formatters'
 
 function formatUnknown(value: unknown) {
   if (value === null || value === undefined) return 'No disponible'
   if (typeof value === 'number') return Number.isInteger(value) ? String(value) : value.toFixed(3)
   return String(value)
+}
+
+function formatMetricValue(key: string, value: unknown) {
+  if (typeof value === 'number' && value <= 1 && /accuracy|f1|precision/.test(key)) {
+    return formatPercent(value * 100)
+  }
+
+  return formatUnknown(value)
+}
+
+function renderModelMetrics(metricas: Record<string, unknown> | null) {
+  const entries = Object.entries(metricas ?? {}).filter(([, value]) => value !== null && value !== undefined)
+  if (entries.length === 0) return <span className="text-slate-500">No disponible</span>
+
+  return (
+    <div className="flex max-w-[360px] flex-wrap gap-1.5">
+      {entries.map(([key, value]) => (
+        <span key={key} className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">
+          <span className="font-semibold">{humanizeKey(key)}:</span> {formatMetricValue(key, value)}
+        </span>
+      ))}
+    </div>
+  )
 }
 
 function sourceLabel(value?: string) {
@@ -103,8 +126,8 @@ export function Motor() {
             { header: 'Estado', render: (item) => (item.cargado ? 'Cargado' : 'No cargado') },
             {
               header: 'Metricas',
-              className: 'text-right',
-              render: (item) => formatUnknown(item.metricas?.conceptos ?? item.metricas?.cuantil),
+              className: 'min-w-[320px]',
+              render: (item) => renderModelMetrics(item.metricas),
             },
           ]}
         />
