@@ -114,8 +114,8 @@ export type PredictionModelInfo = {
   objetivo: string
   descripcion: string | null
   cargado: boolean
-  predecible: boolean
-  ranking: number | null
+  predecible?: boolean
+  ranking?: number | null
   error: string | null
   metricas: Record<string, unknown> | null
 }

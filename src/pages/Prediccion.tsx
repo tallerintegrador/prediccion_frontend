@@ -26,7 +26,7 @@ export function Prediccion() {
     getPredictionModels()
       .then((items) => {
         setModels(items)
-        const defaultModel = items.find((model) => model.predecible && model.principal) ?? items.find((model) => model.predecible)
+        const defaultModel = items.find((model) => isCostModel(model) && model.principal) ?? items.find(isCostModel)
         if (defaultModel) {
           updateField('modelo_id', defaultModel.id)
         }
@@ -62,10 +62,27 @@ export function Prediccion() {
       }))
     : []
 
-  const selectableModels = models.filter((model) => model.predecible)
+  function isCostModel(model: PredictionModelInfo) {
+    return model.predecible ?? (model.activo && model.cargado && !model.error && model.objetivo.toLowerCase() === 'costo')
+  }
+
+  function modelRank(model: PredictionModelInfo) {
+    return model.ranking ?? null
+  }
+
+  const selectableModels = models.filter(isCostModel)
   const topModels = selectableModels
-    .filter((model) => model.ranking !== null)
-    .sort((first, second) => (first.ranking ?? 99) - (second.ranking ?? 99))
+    .sort((first, second) => {
+      const firstRank = modelRank(first)
+      const secondRank = modelRank(second)
+      if (firstRank !== null || secondRank !== null) {
+        return (firstRank ?? 99) - (secondRank ?? 99)
+      }
+      if (first.principal !== second.principal) {
+        return first.principal ? -1 : 1
+      }
+      return first.nombre.localeCompare(second.nombre)
+    })
     .slice(0, 3)
 
   const modelRows: Array<PredictionModelResult | PredictionModelInfo> = result?.resultados_modelos.length
@@ -184,7 +201,7 @@ export function Prediccion() {
             options={[
               { label: 'Modelo principal automatico', value: '' },
               ...selectableModels.map((model) => ({
-                label: `${model.ranking ? `Top ${model.ranking} - ` : ''}${model.nombre}`,
+                label: `${modelRank(model) ? `Top ${modelRank(model)} - ` : ''}${model.nombre}`,
                 value: model.id,
               })),
             ]}
