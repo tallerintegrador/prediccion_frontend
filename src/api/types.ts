@@ -180,6 +180,13 @@ export type PreliquidationSummary = {
   costo_predicho_pen: number
 }
 
+export type PaginatedPreliquidations = {
+  items: PreliquidationSummary[]
+  total: number
+  page: number
+  page_size: number
+}
+
 export type ReconciliationSummary = {
   kpis: {
     reconciliados_mes: number

@@ -1,5 +1,5 @@
-import { Download, FileSpreadsheet, Send } from 'lucide-react'
-import { useCallback } from 'react'
+import { ChevronLeft, ChevronRight, Download, FileSpreadsheet, Send } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getExcelUrl, getPdfUrl, getPreliquidation, getPreliquidationHistory } from '../api/preliquidacion'
 import { Badge } from '../components/ui/Badge'
@@ -10,16 +10,26 @@ import { StateBlock } from '../components/ui/StateBlock'
 import { useFetchData } from '../hooks/useFetchData'
 import { formatDate, formatPen, formatUsd, humanizeKey } from '../utils/formatters'
 
+const HISTORY_PAGE_SIZE = 5
+
 export function Preliquidacion() {
   const [params, setParams] = useSearchParams()
+  const [historyPage, setHistoryPage] = useState(1)
   const id = params.get('id')
   const loadPreliquidationView = useCallback(async () => {
-    const [historial, detalle] = await Promise.all([getPreliquidationHistory(), getPreliquidation(id)])
+    const [historial, detalle] = await Promise.all([
+      getPreliquidationHistory(historyPage, HISTORY_PAGE_SIZE),
+      getPreliquidation(id),
+    ])
     return { historial, detalle }
-  }, [id])
-  const { data, loading, error } = useFetchData(loadPreliquidationView, id ?? 'ultima')
+  }, [historyPage, id])
+  const { data, loading, error } = useFetchData(loadPreliquidationView, `${id ?? 'ultima'}-${historyPage}`)
   const detalle = data?.detalle
-  const historial = data?.historial ?? []
+  const historial = data?.historial.items ?? []
+  const totalHistory = data?.historial.total ?? 0
+  const totalHistoryPages = Math.max(1, Math.ceil(totalHistory / HISTORY_PAGE_SIZE))
+  const startHistoryItem = totalHistory === 0 ? 0 : (historyPage - 1) * HISTORY_PAGE_SIZE + 1
+  const endHistoryItem = Math.min(historyPage * HISTORY_PAGE_SIZE, totalHistory)
 
   const selectPreliquidation = useCallback(
     (nextId: number) => {
@@ -89,6 +99,35 @@ export function Preliquidacion() {
                 )
               })
             )}
+          </div>
+
+          <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+            <Button
+              aria-label="Pagina anterior del historial"
+              className="h-9 min-h-9 px-3"
+              disabled={historyPage <= 1}
+              onClick={() => setHistoryPage((current) => Math.max(1, current - 1))}
+              variant="secondary"
+            >
+              <ChevronLeft size={16} />
+            </Button>
+            <div className="text-center text-xs text-slate-500">
+              <p className="font-semibold text-slate-700">
+                Pagina {historyPage} de {totalHistoryPages}
+              </p>
+              <p>
+                {startHistoryItem}-{endHistoryItem} de {totalHistory}
+              </p>
+            </div>
+            <Button
+              aria-label="Pagina siguiente del historial"
+              className="h-9 min-h-9 px-3"
+              disabled={historyPage >= totalHistoryPages}
+              onClick={() => setHistoryPage((current) => Math.min(totalHistoryPages, current + 1))}
+              variant="secondary"
+            >
+              <ChevronRight size={16} />
+            </Button>
           </div>
         </Card>
 
