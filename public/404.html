@@ -4,16 +4,16 @@
     <meta charset="utf-8" />
     <title>Redirecting...</title>
     <script>
-      // Single Page Apps for GitHub Pages
-      // https://github.com/rafgraph/spa-github-pages
-      // Keep one segment (the repo name: /prediccion_frontend/)
+      // GitHub Pages cannot serve SPA routes directly. Convert
+      // /prediccion_frontend/motor into /prediccion_frontend/#/motor.
       var pathSegmentsToKeep = 1;
       var l = window.location;
+      var basePath = l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/';
+      var routePath = l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/');
       l.replace(
         l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        basePath + '#/' + routePath +
+        (l.search || '') +
         l.hash
       );
     </script>
